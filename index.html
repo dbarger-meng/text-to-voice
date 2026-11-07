@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Robot Voice</title>
+<script>window.coi = { shouldRegister: function () { return location.protocol !== "file:"; } };</script>
+<script src="coi-serviceworker.js"></script>
 <style>
   :root {
     --bg: #f4f1ea; --card: #ffffff; --ink: #1d1d1f; --muted: #6b6b70;
@@ -63,12 +65,13 @@
   .row .grow { flex: 1; }
   label.check { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: .95rem; }
   .controls { display: grid; grid-template-columns: 1fr; gap: 14px; }
-  @media (min-width: 560px) { .controls { grid-template-columns: 1.2fr 1fr 1fr; } }
+  @media (min-width: 560px) { .controls { grid-template-columns: 1.6fr 1fr 1fr; } }
   .controls label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
   select, input[type=range] { width: 100%; }
   select { padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
   input[type=range] { accent-color: var(--accent); }
   .hint { color: var(--muted); font-size: .85rem; margin: 8px 0 0; }
+  code { font: .85em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg); padding: 1px 4px; border-radius: 4px; }
   footer { color: var(--muted); font-size: .8rem; margin-top: 24px; }
   footer a { color: var(--accent); }
 </style>
@@ -113,10 +116,13 @@
       <div><label for="pitch">Pitch <span id="pitchVal"></span></label><input type="range" id="pitch" min="0" max="99"></div>
       <div><label for="speed">Speed <span id="speedVal"></span> wpm</label><input type="range" id="speed" min="80" max="320"></div>
     </div>
+    <p class="hint" id="engineNote" hidden></p>
+    <p class="hint">DECtalk tip: type commands in square brackets, like <code>[:np]</code> for Paul or <code>[:rate 250]</code> to speed up.</p>
   </div>
 
-  <footer>Speech by <a href="http://www.masswerk.at/mespeak/">meSpeak</a> (eSpeak in JavaScript, GPL). Runs entirely in your browser.</footer>
+  <footer>Speech by <a href="https://github.com/dectalk/dectalk">DECtalk</a> (compiled to WebAssembly) and <a href="http://www.masswerk.at/mespeak/">meSpeak</a> (eSpeak in JavaScript, GPL). Runs entirely in your browser.</footer>
 </main>
+<script src="js/dectalk/dectalk.js"></script>
 <script src="js/mespeak.bundle.js"></script>
 <script src="js/quotes.js"></script>
 <script src="js/app.js"></script>

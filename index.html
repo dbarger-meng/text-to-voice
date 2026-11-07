@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot Voice</title>
+<style>
+  :root {
+    --bg: #f4f1ea; --card: #ffffff; --ink: #1d1d1f; --muted: #6b6b70;
+    --line: #e2ddd2; --accent: #c77700; --accent-ink: #ffffff; --screen: #1a1712;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121212; --card: #1c1c1e; --ink: #ececec; --muted: #9a9aa0;
+      --line: #2e2e31; --accent: #f5a623; --accent-ink: #1a1200; --screen: #0b0a08;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 680px; margin: 0 auto; padding: 32px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; letter-spacing: .01em; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+  .screen {
+    background: var(--screen); border-radius: 10px; height: 90px; position: relative; overflow: hidden;
+  }
+  #scope { width: 100%; height: 100%; display: block; }
+  #status {
+    position: absolute; left: 12px; right: 12px; bottom: 6px; color: #f5a623; opacity: .85;
+    font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .screen::before {
+    content: "READY"; position: absolute; left: 12px; top: 8px; color: #f5a623; opacity: .6;
+    font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .15em;
+  }
+  body.speaking .screen::before { content: "SPEAKING"; opacity: 1; }
+  button {
+    font: inherit; border-radius: 10px; border: 1px solid var(--line); padding: 10px 16px;
+    background: var(--card); color: var(--ink); cursor: pointer;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  button:hover { filter: brightness(1.05); }
+  button:focus-visible, textarea:focus-visible, select:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .big { width: 100%; padding: 16px; font-size: 1.1rem; }
+  blockquote { margin: 16px 0 0; min-height: 3em; }
+  #quoteText { font-size: 1.15rem; display: block; }
+  #quoteAuthor { color: var(--muted); display: block; margin-top: 4px; }
+  textarea {
+    width: 100%; min-height: 96px; resize: vertical; padding: 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit;
+  }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .row .grow { flex: 1; }
+  label.check { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: .95rem; }
+  .controls { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 560px) { .controls { grid-template-columns: 1.2fr 1fr 1fr; } }
+  .controls label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
+  select, input[type=range] { width: 100%; }
+  select { padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
+  input[type=range] { accent-color: var(--accent); }
+  .hint { color: var(--muted); font-size: .85rem; margin: 8px 0 0; }
+  footer { color: var(--muted); font-size: .8rem; margin-top: 24px; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Robot Voice</h1>
+  <p class="sub">Type it and the robot says it.</p>
+
+  <div class="card">
+    <div class="screen">
+      <canvas id="scope" aria-hidden="true"></canvas>
+      <div id="status" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Random inspiration</h2>
+    <button id="randomBtn" class="primary big">Speak a random quote</button>
+    <blockquote>
+      <span id="quoteText">Press the button for a quote.</span>
+      <span id="quoteAuthor"></span>
+    </blockquote>
+  </div>
+
+  <div class="card">
+    <h2>Your phrase</h2>
+    <textarea id="phrase" placeholder="Type something for the robot to say…">Hello. I am a robot. Have a nice day.</textarea>
+    <div class="row">
+      <button id="playBtn" class="primary">Play</button>
+      <button id="stopBtn">Stop</button>
+      <span class="grow"></span>
+      <label class="check"><input type="checkbox" id="live"> Speak each word as I type</label>
+    </div>
+    <p class="hint">Enter plays the phrase (Shift+Enter for a new line). With “speak each word” on, use Ctrl+Enter to play it all. Esc stops.</p>
+  </div>
+
+  <div class="card">
+    <h2>Voice</h2>
+    <div class="controls">
+      <div><label for="preset">Preset</label><select id="preset"></select></div>
+      <div><label for="pitch">Pitch <span id="pitchVal"></span></label><input type="range" id="pitch" min="0" max="99"></div>
+      <div><label for="speed">Speed <span id="speedVal"></span> wpm</label><input type="range" id="speed" min="80" max="320"></div>
+    </div>
+  </div>
+
+  <footer>Speech by <a href="http://www.masswerk.at/mespeak/">meSpeak</a> (eSpeak in JavaScript, GPL). Runs entirely in your browser.</footer>
+</main>
+<script src="js/mespeak.bundle.js"></script>
+<script src="js/quotes.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
